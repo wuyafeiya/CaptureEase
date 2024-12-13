@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "CaptureEase",
+  "description": "一个功能强大的浏览器截图工具，支持全屏截图、区域截图、元素截图等功能",
+  "version": "1.0.0",
+  "icons": {
+    "16": "snapshot.png",
+    "48": "snapshot.png",
+    "128": "snapshot.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "snapshot.png"
+  },
+  "commands": {
+    "print-shortcut": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "快速启动截图"
+    }
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "downloads",
+    "storage",
+    "commands"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "web_accessible_resources": [{
+    "resources": ["content.js"],
+    "matches": ["<all_urls>"]
+  }]
+}

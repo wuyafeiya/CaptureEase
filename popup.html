@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-width: 320px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #e8edf7 0%, #dce4f3 100%);
+    }
+
+    .popup-container {
+      padding: 20px;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+      backdrop-filter: blur(10px);
+      box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.12),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 添加装饰性背景效果 */
+    .popup-container::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, 
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.05) 40%,
+        transparent 60%
+      );
+      pointer-events: none;
+    }
+
+    .quick-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 16px;
+    }
+
+    .action-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 20px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 16px;
+      background: linear-gradient(145deg, #ffffff, #f5f7fb);
+      cursor: pointer;
+      font-size: 14px;
+      color: #2c3e50;
+      font-weight: 500;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .action-btn:hover {
+      background: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+      border-color: rgba(26, 115, 232, 0.2);
+    }
+
+    .action-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: #666;
+      stroke-width: 1.5;
+      transition: all 0.3s ease;
+    }
+
+    .action-btn:hover svg {
+      stroke: #1a73e8;
+      transform: scale(1.1);
+    }
+
+    .settings {
+      position: relative;
+      margin-top: 24px;
+      padding: 20px;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      backdrop-filter: blur(5px);
+    }
+
+    .settings::before {
+      display: none;
+    }
+
+    .setting-item label {
+      display: block;
+      color: #2c3e50;
+      font-size: 14px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .shortcut-container {
+      display: flex;
+      gap: 12px;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.8));
+      padding: 4px;
+      border-radius: 12px;
+      backdrop-filter: blur(5px);
+    }
+
+    #shortcut {
+      flex: 1;
+      padding: 10px 16px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      font-size: 14px;
+      background: linear-gradient(145deg, #ffffff, #f8f9fc);
+      color: #2c3e50;
+      /* font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; */
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+      letter-spacing: 0.5px;
+    }
+
+    .shortcut-edit-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1a73e8, #1557b0);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(26, 115, 232, 0.25);
+    }
+
+    .shortcut-edit-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(26, 115, 232, 0.35);
+      background: linear-gradient(135deg, #1867d0, #1a73e8);
+    }
+  </style>
+</head>
+<body>
+  <div class="popup-container">
+    <!-- 快速操作区 -->
+    <div class="quick-actions">
+      <button id="fullscreen" class="action-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24">
+          <path d="M3 3h6v2h-4v4h-2v-6zm18 0v6h-2v-4h-4v-2h6zm-18 18v-6h2v4h4v2h-6zm18 0h-6v-2h4v-4h2v6z" 
+            stroke="currentColor" 
+            fill="none" 
+            stroke-width="1" 
+            stroke-linecap="round" 
+            stroke-linejoin="round"/>
+        </svg>
+        全屏截图
+      </button>
+      <button id="area" class="action-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="18" height="18" 
+            stroke="currentColor" 
+            fill="none" 
+            stroke-width="1" 
+            stroke-linecap="round" 
+            stroke-linejoin="round"
+            stroke-dasharray="2 2"/>
+        </svg>
+        自选截图
+      </button>
+    </div>
+
+    <!-- 设置面板 -->
+    <div class="settings">
+      <div class="setting-item">
+        <label>当前快捷键</label>
+        <div class="shortcut-container">
+          <input type="text" id="shortcut" value="Alt+Shift+S" readonly>
+          <button id="editShortcut" class="shortcut-edit-btn">修改快捷键</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

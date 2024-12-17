@@ -214,7 +214,6 @@ const screenshotManager = {
       // 获取保存的图片格式设置
       const format = await chrome.storage.local.get('format');
       const imageFormat = format.format || 'png';
-      
       const downloadId = await chrome.downloads.download({
         url: dataUrl,
         filename: `visible-screenshot-${Date.now()}.${imageFormat}`,
@@ -222,6 +221,7 @@ const screenshotManager = {
       });
       console.log('下载已开始，ID:', downloadId);
       sendResponse({ success: true });
+      
     } catch (error) {
       console.error('下载失败:', error);
       sendResponse({ success: false, error: error.message });
@@ -232,19 +232,28 @@ const screenshotManager = {
   async handleAreaCapture(dataUrl, area, sendResponse) {
     try {
       const response = await fetch(dataUrl);
+      let sourceImageBitmap;
+      if (area.sourceCanvas) {
+        const sourceCanvas = await fetch(area.sourceCanvas);
+        const sourceBlob = await sourceCanvas.blob();
+        sourceImageBitmap = await createImageBitmap(sourceBlob);
+      }
       const blob = await response.blob();
       const imageBitmap = await createImageBitmap(blob);
-      
+      console.log(sourceImageBitmap, 12313);
       const canvas = new OffscreenCanvas(area.width, area.height);
       const ctx = canvas.getContext('2d');
-      
-      ctx.drawImage(imageBitmap,
-        area.x, area.y,
-        area.width, area.height,
-        0, 0,
-        area.width, area.height
-      );
-
+      try {
+        ctx.drawImage(imageBitmap,
+          area.x, area.y,
+          area.width, area.height,
+          0, 0,
+          area.width, area.height
+        );
+        area.sourceCanvas && ctx.drawImage(sourceImageBitmap, 0, 0, area.width, area.height);
+      } catch (e) {
+        console.log(e);
+      }
       // 获取保存的图片格式设置
       const format = await chrome.storage.local.get('format');
       const imageFormat = format.format || 'png';
@@ -252,7 +261,6 @@ const screenshotManager = {
 
       const croppedBlob = await canvas.convertToBlob({ type: mimeType });
       const reader = new FileReader();
-
       reader.onloadend = async () => {
         try {
           const downloadId = await chrome.downloads.download({
@@ -267,12 +275,10 @@ const screenshotManager = {
           sendResponse({ success: false, error: error.message });
         }
       };
-
       reader.onerror = () => {
         console.error('读取文件失败');
         sendResponse({ success: false, error: '读取文件失败' });
       };
-
       reader.readAsDataURL(croppedBlob);
     } catch (error) {
       console.error('处理过程出错:', error);
@@ -281,7 +287,7 @@ const screenshotManager = {
   }
 };
 
-// 在 background.js 中添加一个函数来处理截图初始化
+// 在 background.js 中添加一个函数来处理图初始化
 async function initScreenshot(tab) {
   await chrome.scripting.insertCSS({
     target: { tabId: tab.id },
@@ -331,6 +337,53 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       screenshotManager.handleAreaCapture(dataUrl, request.area, sendResponse);
     });
     return true;
+  }
+
+  if (request.action === 'copyArea') {
+    console.log('开始处理复制，区域:', request.area);
+    try {
+      chrome.tabs.captureVisibleTab(null, { format: 'png' }, async (dataUrl) => {
+        if (chrome.runtime.lastError) {
+          sendResponse({ success: false, error: chrome.runtime.lastError.message });
+          return;
+        }
+        try {
+          const response = await fetch(dataUrl);
+          const blob = await response.blob();
+          const imageBitmap = await createImageBitmap(blob);
+          const canvas = new OffscreenCanvas(request.area.width, request.area.height);
+          const ctx = canvas.getContext('2d');
+          // 绘制截图区域
+          ctx.drawImage(imageBitmap,
+            request.area.x, request.area.y,
+            request.area.width, request.area.height,
+            0, 0,
+            request.area.width, request.area.height
+          );
+          if(request.area.sourceCanvas){
+            const sourceImage = await createImageBitmap(await (await fetch(request.area.sourceCanvas)).blob());
+            ctx.drawImage(sourceImage, 0, 0);
+          }
+          canvas.convertToBlob({ type: 'image/png' }).then(blob => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const dataUrl = reader.result; // 这是转换后的 Data URL
+              sendResponse({ success: true, dataURL: dataUrl });
+            };
+            reader.readAsDataURL(blob);
+          }).catch(err => {
+            console.error('转换为 Data URL 失败:', err);
+          });
+        } catch (error) {
+          console.error('复制过程出错:', error);
+          sendResponse({ success: false, error: error.message });
+        }
+      });
+    } catch (error) {
+      console.error('整体处理失败:', error);
+      sendResponse({ success: false, error: error.message });
+    }
+    return true;  // 表示会异步发送响应
   }
 });
 

@@ -26,7 +26,9 @@
     "scripting",
     "downloads",
     "storage",
-    "commands"
+    "commands",
+    "clipboardWrite",
+    "clipboardRead"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -35,7 +37,10 @@
     "service_worker": "background.js"
   },
   "web_accessible_resources": [{
-    "resources": ["content.js"],
+    "resources": [
+      "content.js",
+      "utils/*"
+    ],
     "matches": ["<all_urls>"]
   }]
 }

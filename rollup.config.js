@@ -1,4 +1,5 @@
 import { terser } from 'rollup-plugin-terser';
+import cleanup from 'rollup-plugin-cleanup';
 
 export default {
   input: {
@@ -8,8 +9,24 @@ export default {
   },
   output: {
     dir: 'dist',
-    format: 'es', // 使用 ES 模块格式，支持代码拆分
+    format: 'es',
     entryFileNames: '[name].js',
   },
-  plugins: [terser()],
+  plugins: [
+    cleanup({
+      comments: 'none',
+      include: ['**/*.js'],
+      compactComments: false,
+      lineEndings: 'unix',
+      maxEmptyLines: 0,
+      extensions: ['.js'],
+      sourcemap: false
+    }),
+    terser({
+      compress: {
+        drop_console: true,
+        pure_funcs: ['console.log']
+      }
+    })
+  ],
 };
